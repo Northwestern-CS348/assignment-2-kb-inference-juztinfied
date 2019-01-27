@@ -1,0 +1,12 @@
+rule: ((inst ?x ?y) (isa ?y ?z)) -> (inst ?x ?z)
+fact: (inst cube1 cube)
+fact: (inst cube 3dshape)
+rule: ((inst ?x cube)) -> (flat ?x)
+rule: ((on ?x ?y) (bigger ?x ?y)) -> (covered ?y)
+rule: ((married ?x ?y) (love ?x ?y)) -> (happy ?x)
+rule: ((married ?x ?y) (love ?x ?y)) -> (happy ?y)
+
+fact: (inst cube1 cube)
+fact: (inst cube 3dshape)
+
+
