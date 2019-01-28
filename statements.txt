@@ -1,6 +1,9 @@
 rule: ((inst ?x ?y) (isa ?y ?z)) -> (inst ?x ?z)
 fact: (inst cube1 cube)
 fact: (isa cube 3dshape)
-
+rule: ((sizeIsLess ?y ?x) (on ?x ?y) (inst ?x red)) -> (coveredByRed ?y)
+fact: (on simon garion)
+fact: (inst simon red)
+fact: (sizeIsLess garion simon)
 
 

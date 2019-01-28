@@ -129,6 +129,30 @@ class KnowledgeBase(object):
         ####################################################
         # Student code goes here
         
+        if (isinstance(fact_or_rule, Rule)):
+            return 
+        
+        elif (isinstance(fact_or_rule, Fact)):
+            child_facts = fact_or_rule.supports_facts
+            child_rules = fact_or_rule.supports_rules
+
+            for f in child_facts:
+                supporting_stuff = child_facts.supported_by
+                for pair in supporting_stuff:
+                    if fact_or_rule in pair:
+                        supporting_stuff.remove(pair)
+                if not supporting_stuff and not f.asserted:
+                    self.facts.remove(f)
+
+            for r in child_rules:
+                supporting_stuff = child_facts.supported_by
+                for pair in supporting_stuff:
+                    if fact_or_rule in pair:
+                        supporting_stuff.remove(pair)
+                if not supporting_stuff and not r.asserted:
+                    self.facts.remove(f)
+
+            self.facts.remove(fact_or_rule)
 
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
@@ -155,26 +179,33 @@ class InferenceEngine(object):
         # check firs statement of LHS against the fact and see if there can be any bindings produced
         bindings = match(rule.lhs[0], fact.statement) # bindings is of type == Bindings 
 
-        if bindings: # means we are going to create a new rule 
+        if bindings:
             new_lhs = list()
-
+        
             for i in range(len(rule.lhs) - 1):
-                print('new lhs:')
-                print(instantiate(rule.lhs[i+1], bindings))
                 new_lhs.append(instantiate(rule.lhs[i+1], bindings))
-            
+                
             new_rhs = instantiate(rule.rhs, bindings)
-            print('new rhs is ' + new_rhs.__str__())
-            # now to make the new rule after adding a new fact 
-            new_rule = Rule([new_lhs, new_rhs], [[fact, rule]])
 
-            print('new rule is ')
-            print(new_rule.__str__())
+            if len(new_lhs):
+                # now to make the new rule after adding a new fact 
+                new_rule = Rule([new_lhs, new_rhs],  supported_by=[[fact, rule]])
+                print('new rule is ')
+                print(new_rule.__str__())
 
-            # asociate the foundation rules and facts to the new rule 
-            fact.supports_rules.append(new_rule)
-            rule.supports_rules.append(new_rule)
-            kb.kb_assert(new_rule)
+                
+                # asociate the foundation rules and facts to the new rule 
+                fact.supports_rules.append(new_rule)
+                rule.supports_rules.append(new_rule)
+                kb.kb_assert(new_rule)
+                
+            else:
+                new_fact = Fact(new_rhs, [[fact, rule]])
+                print('new fact is ')
+                print(new_fact.__str__())
+                fact.supports_facts.append(new_fact)
+                rule.supports_facts.append(new_fact)
+                kb.kb_assert(new_fact)
 
         else: # it could be that both fact and first lhs of rule only have constants and are exactly the same and so we are creating a new fact instead 
             f_pred = fact.statement.predicate
