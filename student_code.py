@@ -136,6 +136,11 @@ class KnowledgeBase(object):
             child_facts = fact_or_rule.supports_facts
             child_rules = fact_or_rule.supports_rules
 
+            print('here are the child facts')
+            for cf in child_facts:
+                print(cf.__str__())
+
+            print('here are the child rules')
             for f in child_facts:
                 supporting_stuff = child_facts.supported_by
                 for pair in supporting_stuff:
@@ -173,8 +178,8 @@ class InferenceEngine(object):
 
         # we first need to check if the fact can be unified with the FIRST statement of the rule
         # getting the first statement of LHS
-        print('old fact: ' + fact.__str__())
-        print('old rule: ' + rule.__str__())
+        # print('old fact: ' + fact.__str__())
+        # print('old rule: ' + rule.__str__())
 
         # check firs statement of LHS against the fact and see if there can be any bindings produced
         bindings = match(rule.lhs[0], fact.statement) # bindings is of type == Bindings 
@@ -192,11 +197,18 @@ class InferenceEngine(object):
                 new_rule = Rule([new_lhs, new_rhs],  supported_by=[[fact, rule]])
                 print('new rule is ')
                 print(new_rule.__str__())
-
                 
                 # asociate the foundation rules and facts to the new rule 
                 fact.supports_rules.append(new_rule)
                 rule.supports_rules.append(new_rule)
+                print ('parents of new fact: ')
+                print(fact.__str__())
+                print(rule.__str__())
+                print ('does parent know who is their child?')
+                for f in fact.supports_facts:
+                    print (f.__str__())
+                for r in rule.supports_facts:
+                    print (r.__str__())
                 kb.kb_assert(new_rule)
                 
             else:
@@ -206,6 +218,14 @@ class InferenceEngine(object):
                 fact.supports_facts.append(new_fact)
                 rule.supports_facts.append(new_fact)
                 kb.kb_assert(new_fact)
+                print ('parents of new fact: ')
+                print(fact.__str__())
+                print(rule.__str__())
+                print ('does parent know who is their child?')
+                for f in fact.supports_facts:
+                    print (f.__str__())
+                for r in rule.supports_facts:
+                    print (r.__str__())
 
         else: # it could be that both fact and first lhs of rule only have constants and are exactly the same and so we are creating a new fact instead 
             f_pred = fact.statement.predicate
@@ -230,7 +250,15 @@ class InferenceEngine(object):
                     print (new_fact.__str__())
                     fact.supports_facts.append(new_fact)
                     rule.supports_facts.append(new_fact)
+                    print ('parents of new fact: ')
+                    print(fact.__str__())
+                    print(rule.__str__())
                     kb.kb_assert(new_fact)
+                    print ('does parent know who is their child?')
+                    for f in fact.supports_facts:
+                        print (f.__str__())
+                    for r in rule.supports_facts:
+                        print (r.__str__())
 
                 elif lhs_count > 1 : #if so, create new rule 
                     new_rule = Rule([rule.lhs[:1], rule.rhs], [fact, rule])
@@ -238,9 +266,17 @@ class InferenceEngine(object):
                     print (new_rule.__str__())
                     fact.supports_rules.append(new_rule)
                     rule.supports_rules.append(new_rule)
+                    print ('parents of new fact: ')
+                    print(fact.__str__())
+                    print(rule.__str__())
                     kb.kb_assert(new_rule)
+                    print ('does parent know who is their child?')
+                    for f in fact.supports_facts:
+                        print (f.__str__())
+                    for r in rule.supports_facts:
+                        print (r.__str__())
 
             else: # if there is no binding simply because fact and first lhs are not related at all
-                print ('no link')
+                # print ('no link')
                 return 
 

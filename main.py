@@ -68,7 +68,9 @@ class KBTest(unittest.TestCase):
         self.assertEqual(str(answer[1]), "?X : chen")
 
     def test3(self):
-        # Does retract actually retract things 
+        # Does retract actually retract things
+        for fact in self.KB.facts: 
+            print(fact.__str__())
         r1 = read.parse_input("fact: (motherof ada bing)")
         print(' Retracting', r1)
         self.KB.kb_retract(r1)
