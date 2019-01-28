@@ -149,40 +149,34 @@ class InferenceEngine(object):
 
         # we first need to check if the fact can be unified with the FIRST statement of the rule
         # getting the first statement of LHS
-        first_lhs_state = rule.lhs[0] 
+        print('old fact: ' + fact.__str__())
+        print('old rule: ' + rule.__str__())
 
         # check firs statement of LHS against the fact and see if there can be any bindings produced
-        bindings = match(first_lhs_state, fact.statement) # bindings is of type == Bindings 
+        bindings = match(rule.lhs[0], fact.statement) # bindings is of type == Bindings 
 
-        if bindings:
+        if bindings: # means we are going to create a new rule 
             new_lhs = list()
 
-            for lhs in rule.lhs:
-                print ('lhs is:')
-                print (lhs)
-
             for i in range(len(rule.lhs) - 1):
+                print('new lhs:')
+                print(instantiate(rule.lhs[i+1], bindings))
                 new_lhs.append(instantiate(rule.lhs[i+1], bindings))
             
-            new_rhs = rule.rhs.copy() 
-            print('new rhs is:')
-            print(new_rhs)
-
-            # preparing arguments to construct new rule 
-            new_lhs_rhs = list()
-            new_lhs_rhs[0] = new_lhs
-            new_lhs_rhs[1] = new_rhs
-            new_supported_by = list()
-            new_supported_by.append(fact)
-            new_supported_by.append(rule)
-
+            new_rhs = instantiate(rule.rhs, bindings)
+            print('new rhs is ' + new_rhs.__str__())
             # now to make the new rule after adding a new fact 
-            new_rule = Fact(new_lhs_rhs, new_supported_by)
+            new_rule = Rule([new_lhs, new_rhs], [[fact, rule]])
+
+            print('new rule is ')
+            print(new_rule.__str__())
 
             # asociate the foundation rules and facts to the new rule 
-            fact.supports_rule.append()
-            
-        else: # it could be that both fact and first lhs of rule only have constants and are exactly the same 
+            fact.supports_rules.append(new_rule)
+            rule.supports_rules.append(new_rule)
+            kb.kb_assert(new_rule)
+
+        else: # it could be that both fact and first lhs of rule only have constants and are exactly the same and so we are creating a new fact instead 
             f_pred = fact.statement.predicate
             f_terms = fact.statement.terms
             f_constant = True 
@@ -190,16 +184,32 @@ class InferenceEngine(object):
                 if isinstance(term, Variable):
                     f_constant = False 
 
-            r_pred = rule.statement.predicate
-            r_terms = rule.statement.terms
+            r_pred = rule.lhs[0].predicate
+            r_terms = rule.lhs[0].terms
             r_constant = True 
             for term in r_terms:
                 if isinstance(term, Variable):
                     r_constant = False 
 
             if (f_pred == r_pred and r_terms == f_terms and f_constant == True and r_constant == True):
-                new_fact = Fact(rule.rhs, [fact, rule])
+                lhs_count = len(rule.lhs)
+                if lhs_count == 1: # if so, create a new fact 
+                    new_fact = Fact(rule.rhs, [fact, rule])
+                    print ('new fact is :')
+                    print (new_fact.__str__())
+                    fact.supports_facts.append(new_fact)
+                    rule.supports_facts.append(new_fact)
+                    kb.kb_assert(new_fact)
+
+                elif lhs_count > 1 : #if so, create new rule 
+                    new_rule = Rule([rule.lhs[:1], rule.rhs], [fact, rule])
+                    print ('new rule is :')
+                    print (new_rule.__str__())
+                    fact.supports_rules.append(new_rule)
+                    rule.supports_rules.append(new_rule)
+                    kb.kb_assert(new_rule)
 
             else: # if there is no binding simply because fact and first lhs are not related at all
+                print ('no link')
                 return 
 
