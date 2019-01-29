@@ -64,7 +64,7 @@ class KnowledgeBase(object):
                 if fact_rule.supported_by: # if the new statement is already in the kb and is supported_by stuff
                     ind = self.facts.index(fact_rule) # find the index of that fact that already is inside the kb
                     for f in fact_rule.supported_by: # for every fact that supports this fact_rule
-                        self.facts[ind].supported_by.append(f) 
+                        self.facts[ind].supported_by.append(f)
                 else:
                     ind = self.facts.index(fact_rule) # if the new fact-rule is already in the kb but is not supported by anything
                     self.facts[ind].asserted = True # consider it as asserted and so cannot be removed already
@@ -117,14 +117,6 @@ class KnowledgeBase(object):
             return []
 
     def kb_retract(self, fact_or_rule):
-        """Retract a fact from the KB
-
-        Args:
-            fact (Fact) - Fact to be retracted
-
-        Returns:
-            None
-        """
         printv("Retracting {!r}", 0, verbose, [fact_or_rule])
         ####################################################
         # Student code goes here
@@ -133,31 +125,47 @@ class KnowledgeBase(object):
             return 
         
         elif (isinstance(fact_or_rule, Fact)):
-            child_facts = fact_or_rule.supports_facts
-            child_rules = fact_or_rule.supports_rules
+            if fact_or_rule not in self.facts: # if the new statement (fact or rule) is not in facts
+                print('the fact is not in the kb!')
+                return 
 
-            print('here are the child facts')
-            for cf in child_facts:
-                print(cf.__str__())
+            else:
+                to_remove = self.facts[self.facts.index(fact_or_rule)]
 
-            print('here are the child rules')
-            for f in child_facts:
-                supporting_stuff = child_facts.supported_by
-                for pair in supporting_stuff:
-                    if fact_or_rule in pair:
-                        supporting_stuff.remove(pair)
-                if not supporting_stuff and not f.asserted:
-                    self.facts.remove(f)
+                supports = to_remove.supported_by
 
-            for r in child_rules:
-                supporting_stuff = child_facts.supported_by
-                for pair in supporting_stuff:
-                    if fact_or_rule in pair:
-                        supporting_stuff.remove(pair)
-                if not supporting_stuff and not r.asserted:
-                    self.facts.remove(f)
+                if supports:
+                    print('the fact is supported!')
+                    return 
 
-            self.facts.remove(fact_or_rule)
+                child_facts = to_remove.supports_facts
+                child_rules = to_remove.supports_rules
+
+                print('here are the child facts')
+                for cf in child_facts:
+                    print(cf.__str__())
+
+                print('here are the child rules')
+                for r in child_rules:
+                    print(r.__str__())
+
+                for f in child_facts:
+                    supporting_pairs = self.facts[self.facts.index(f)].supported_by
+                    for pair in supporting_pairs:
+                        if fact_or_rule in pair:
+                            supporting_pairs.remove(pair)
+                    if not supporting_pairs and not f.asserted: # if there are no more supporting pairs to the child fact f 
+                        self.facts.remove(f)
+
+                for r in child_rules:
+                    supporting_pairs = self.rules[self.rules.index(r)].supported_by
+                    for pair in supporting_pairs:
+                        if fact_or_rule in pair:
+                            supporting_pairs.remove(pair)
+                    if not supporting_pairs and not r.asserted:
+                        self.facts.remove(r)
+
+                self.facts.remove(fact_or_rule)
 
 class InferenceEngine(object):
     def fc_infer(self, fact, rule, kb):
@@ -173,16 +181,10 @@ class InferenceEngine(object):
         """
         printv('Attempting to infer from {!r} and {!r} => {!r}', 1, verbose,
             [fact.statement, rule.lhs, rule.rhs])
-        ####################################################
-        # Student code goes here
-
-        # we first need to check if the fact can be unified with the FIRST statement of the rule
-        # getting the first statement of LHS
-        # print('old fact: ' + fact.__str__())
-        # print('old rule: ' + rule.__str__())
 
         # check firs statement of LHS against the fact and see if there can be any bindings produced
         bindings = match(rule.lhs[0], fact.statement) # bindings is of type == Bindings 
+        new = None
 
         # other checks 
         f_pred = fact.statement.predicate
@@ -212,46 +214,29 @@ class InferenceEngine(object):
             if len(new_lhs):
                 # now to make the new rule after adding a new fact 
                 new = Rule([new_lhs, new_rhs],  supported_by=[[fact, rule]])
-                print('new rule is ')
-                print(new.__str__())
-                
+
             else:
                 new = Fact(new_rhs, [[fact, rule]])
-                print('new fact is ')
-                print(new.__str__())
 
         elif (f_pred == r_pred and r_terms == f_terms and f_constant == True and r_constant == True): # it could be that both fact and first lhs of rule only have constants and are exactly the same and so we are creating a new fact instead 
             lhs_count = len(rule.lhs)
             if lhs_count == 1: # if so, create a new fact 
                 new = Fact(rule.rhs, [fact, rule])
-                print ('new fact is :')
-                print (new.__str__())
-                fact.supports_facts.append(new)
-                rule.supports_facts.append(new)
-                kb.kb_assert(new)
 
             elif lhs_count > 1 : #if so, create new rule 
-                new = Rule([rule.lhs[:1], rule.rhs], [fact, rule])
-                print ('new rule is :')
-                print (new.__str__())
-                kb.kb_assert(new)
-
-        else: # if there is no binding simply because fact and first lhs are not related at all
-            pass
+                new = Rule([rule.lhs[:1], rule.rhs], [fact, rule])            
 
         if (new and isinstance(new, Fact)): 
-            print ('parents of new fact: ')
-            print(new.supported_by[0][0].__str__()) 
-            print(new.supported_by[0][1].__str__())
-            print('checking if parents know their child')
-            print(fact.supports_facts[-1].__str__())
-            print(rule.supports_facts[-1].__str__())
+            kb.kb_assert(new)
+            print('new fact is ')
+            print(new.__str__())
+            fact.supports_facts.append(new)
+            rule.supports_facts.append(new)
         
         elif (new and isinstance(new, Rule)):
-            print ('parents of new rule: ')
-            print(new.supported_by[0][0].__str__()) 
-            print(new.supported_by[0][1].__str__())
-            print('checking if parents know their child')
-            print(fact.supports_facts[-1].__str__())
-            print(rule.supports_facts[-1].__str__())
+            kb.kb_assert(new)
+            print('new rule is ')
+            print(new.__str__())
+            fact.supports_rules.append(new)
+            rule.supports_rules.append(new)
 
