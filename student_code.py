@@ -184,6 +184,23 @@ class InferenceEngine(object):
         # check firs statement of LHS against the fact and see if there can be any bindings produced
         bindings = match(rule.lhs[0], fact.statement) # bindings is of type == Bindings 
 
+        # other checks 
+        f_pred = fact.statement.predicate
+        f_terms = fact.statement.terms
+        f_constant = True 
+        for term in f_terms:
+            if isinstance(term, Variable):
+                f_constant = False 
+
+        r_pred = rule.lhs[0].predicate
+        r_terms = rule.lhs[0].terms
+        r_constant = True 
+        for term in r_terms:
+            if isinstance(term, Variable):
+                r_constant = False
+
+
+        # check if there are bindings 
         if bindings:
             new_lhs = list()
         
@@ -194,89 +211,88 @@ class InferenceEngine(object):
 
             if len(new_lhs):
                 # now to make the new rule after adding a new fact 
-                new_rule = Rule([new_lhs, new_rhs],  supported_by=[[fact, rule]])
+                new = Rule([new_lhs, new_rhs],  supported_by=[[fact, rule]])
                 print('new rule is ')
-                print(new_rule.__str__())
-                
-                # asociate the foundation rules and facts to the new rule 
-                fact.supports_rules.append(new_rule)
-                rule.supports_rules.append(new_rule)
-                print ('parents of new fact: ')
-                print(fact.__str__())
-                print(rule.__str__())
-                print ('does parent know who is their child?')
-                for f in fact.supports_facts:
-                    print (f.__str__())
-                for r in rule.supports_facts:
-                    print (r.__str__())
-                kb.kb_assert(new_rule)
+                print(new.__str__())
                 
             else:
-                new_fact = Fact(new_rhs, [[fact, rule]])
+                new = Fact(new_rhs, [[fact, rule]])
                 print('new fact is ')
-                print(new_fact.__str__())
-                fact.supports_facts.append(new_fact)
-                rule.supports_facts.append(new_fact)
-                kb.kb_assert(new_fact)
-                print ('parents of new fact: ')
-                print(fact.__str__())
-                print(rule.__str__())
-                print ('does parent know who is their child?')
-                for f in fact.supports_facts:
-                    print (f.__str__())
-                for r in rule.supports_facts:
-                    print (r.__str__())
+                print(new.__str__())
+                # fact.supports_facts.append(new)
+                # rule.supports_facts.append(new)
+                # kb.kb_assert(new)
+                # print ('parents of new fact: ')
+                # for pair in range(len(new.supported_by)):
+                #     for f_r in range (1):
+                #        print(new.supported_by[pair][f_r].__str__()) 
+                # print('checking if parents know their child')
+                # print(fact.supports_facts[-1].__str__())
+                # print(rule.supports_facts[-1].__str__())
 
-        else: # it could be that both fact and first lhs of rule only have constants and are exactly the same and so we are creating a new fact instead 
-            f_pred = fact.statement.predicate
-            f_terms = fact.statement.terms
-            f_constant = True 
-            for term in f_terms:
-                if isinstance(term, Variable):
-                    f_constant = False 
+        elif (f_pred == r_pred and r_terms == f_terms and f_constant == True and r_constant == True): # it could be that both fact and first lhs of rule only have constants and are exactly the same and so we are creating a new fact instead 
+            # print('i am here')
+            # f_pred = fact.statement.predicate
+            # f_terms = fact.statement.terms
+            # f_constant = True 
+            # for term in f_terms:
+            #     if isinstance(term, Variable):
+            #         f_constant = False 
 
-            r_pred = rule.lhs[0].predicate
-            r_terms = rule.lhs[0].terms
-            r_constant = True 
-            for term in r_terms:
-                if isinstance(term, Variable):
-                    r_constant = False 
+            # r_pred = rule.lhs[0].predicate
+            # r_terms = rule.lhs[0].terms
+            # r_constant = True 
+            # for term in r_terms:
+            #     if isinstance(term, Variable):
+            #         r_constant = False 
 
-            if (f_pred == r_pred and r_terms == f_terms and f_constant == True and r_constant == True):
-                lhs_count = len(rule.lhs)
-                if lhs_count == 1: # if so, create a new fact 
-                    new_fact = Fact(rule.rhs, [fact, rule])
-                    print ('new fact is :')
-                    print (new_fact.__str__())
-                    fact.supports_facts.append(new_fact)
-                    rule.supports_facts.append(new_fact)
-                    print ('parents of new fact: ')
-                    print(fact.__str__())
-                    print(rule.__str__())
-                    kb.kb_assert(new_fact)
-                    print ('does parent know who is their child?')
-                    for f in fact.supports_facts:
-                        print (f.__str__())
-                    for r in rule.supports_facts:
-                        print (r.__str__())
+            lhs_count = len(rule.lhs)
+            if lhs_count == 1: # if so, create a new fact 
+                new = Fact(rule.rhs, [fact, rule])
+                print ('new fact is :')
+                print (new.__str__())
+                fact.supports_facts.append(new)
+                rule.supports_facts.append(new)
+                kb.kb_assert(new)
+                    # print ('parents of new fact: ')
+                    # for pair in range(len(new.supported_by)):
+                    #     for f_r in range (1):
+                    #         print(new.supported_by[pair][f_r].__str__()) 
+                    # print('checking if parents know their child')
+                    # print(fact.supports_facts[-1].__str__())
+                    # print(rule.supports_facts[-1].__str__())
 
-                elif lhs_count > 1 : #if so, create new rule 
-                    new_rule = Rule([rule.lhs[:1], rule.rhs], [fact, rule])
-                    print ('new rule is :')
-                    print (new_rule.__str__())
-                    fact.supports_rules.append(new_rule)
-                    rule.supports_rules.append(new_rule)
-                    print ('parents of new fact: ')
-                    print(fact.__str__())
-                    print(rule.__str__())
-                    kb.kb_assert(new_rule)
-                    print ('does parent know who is their child?')
-                    for f in fact.supports_facts:
-                        print (f.__str__())
-                    for r in rule.supports_facts:
-                        print (r.__str__())
+            elif lhs_count > 1 : #if so, create new rule 
+                new = Rule([rule.lhs[:1], rule.rhs], [fact, rule])
+                print ('new rule is :')
+                print (new.__str__())
+                fact.supports_rules.append(new)
+                rule.supports_rules.append(new)
+                kb.kb_assert(new)
+                    # print ('parents of new rule: ')
+                    # for pair in range(len(new.supported_by)):
+                    #     for f_r in range (1):
+                    #         print(new.supported_by[pair][f_r].__str__()) 
+                    # print('checking if parents know their child')
+                    # print(fact.supports_facts[-1].__str__())
+                    # print(rule.supports_facts[-1].__str__())
 
-            else: # if there is no binding simply because fact and first lhs are not related at all
-                # print ('no link')
-                return 
+        else: # if there is no binding simply because fact and first lhs are not related at all
+            pass
+
+        if (new and isinstance(new, Fact)): 
+            print ('parents of new fact: ')
+            print(new.supported_by[0][0].__str__()) 
+            print(new.supported_by[0][1].__str__())
+            print('checking if parents know their child')
+            print(fact.supports_facts[-1].__str__())
+            print(rule.supports_facts[-1].__str__())
+        
+        elif (new and isinstance(new, Rule)):
+            print ('parents of new rule: ')
+            print(new.supported_by[0][0].__str__()) 
+            print(new.supported_by[0][1].__str__())
+            print('checking if parents know their child')
+            print(fact.supports_facts[-1].__str__())
+            print(rule.supports_facts[-1].__str__())
 
