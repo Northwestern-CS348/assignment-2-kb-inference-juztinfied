@@ -57,7 +57,8 @@ class KBTest(unittest.TestCase):
         ask1 = read.parse_input("fact: (grandmotherof ada ?X)")
         print(' Asking if', ask1)
         answer = self.KB.kb_ask(ask1)
-        self.assertEqual(str(answer[0]), "?X : chen")      
+        self.assertEqual(str(answer[0]), "?X : chen")   
+        f1 = Fact()   
         
     # def test1(self):
     #     # Did the student code contain syntax errors, AttributeError, etc.
