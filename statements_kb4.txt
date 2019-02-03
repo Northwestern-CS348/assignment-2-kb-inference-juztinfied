@@ -4,9 +4,11 @@ fact: (motherof dolores chen)
 fact: (sisters ada eva)
 fact: (grandmotherof ada felix)
 fact: (motherof greta felix)
+fact: (kindto ada chen)
 
 rule: ((motherof ?x ?y)) -> (parentof ?x ?y)
 rule: ((parentof ?x ?y) (sisters ?x ?z)) -> (auntof ?z ?y)
 rule: ((parentof ?x ?y) (motherof ?z ?x)) -> (grandmotherof ?z ?y)
 rule: ((grandmotherof ?x ?y)) -> (cooksfor ?x ?y)
+rule: ((kindto ?x ?y)) -> (cooksfor ?x ?y)
 

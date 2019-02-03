@@ -141,13 +141,13 @@ class KnowledgeBase(object):
                 child_facts = to_remove.supports_facts
                 child_rules = to_remove.supports_rules
 
-                print('here are the child facts')
-                for cf in child_facts:
-                    cf.__str__()
+                # print('here are the child facts')
+                # for cf in child_facts:
+                #     cf.__str__()
 
-                print('here are the child rules')
-                for r in child_rules:
-                    r.__str__()
+                # print('here are the child rules')
+                # for r in child_rules:
+                #     r.__str__()
 
                 for f in child_facts: # f is one of the child fact(s) of the fact to be removed 
                     supporting_pairs = self.facts[self.facts.index(f)].supported_by # find 
