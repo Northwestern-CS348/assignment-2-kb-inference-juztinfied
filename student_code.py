@@ -143,19 +143,19 @@ class KnowledgeBase(object):
 
                 print('here are the child facts')
                 for cf in child_facts:
-                    print(cf.__str__())
+                    cf.__str__()
 
                 print('here are the child rules')
                 for r in child_rules:
-                    print(r.__str__())
+                    r.__str__()
 
-                for f in child_facts:
-                    supporting_pairs = self.facts[self.facts.index(f)].supported_by
+                for f in child_facts: # f is one of the child fact(s) of the fact to be removed 
+                    supporting_pairs = self.facts[self.facts.index(f)].supported_by # find 
                     for pair in supporting_pairs:
                         if fact_or_rule in pair:
                             supporting_pairs.remove(pair)
-                    if not supporting_pairs and not f.asserted: # if there are no more supporting pairs to the child fact f 
-                        self.facts.remove(f)
+                    if len(supporting_pairs) == 0 and not f.asserted: # if there are no more supporting pairs to the child fact f 
+                        self.kb_retract(f)
 
                 for r in child_rules:
                     supporting_pairs = self.rules[self.rules.index(r)].supported_by
@@ -163,7 +163,7 @@ class KnowledgeBase(object):
                         if fact_or_rule in pair:
                             supporting_pairs.remove(pair)
                     if not supporting_pairs and not r.asserted:
-                        self.facts.remove(r)
+                        self.rules.remove(r)
 
                 self.facts.remove(fact_or_rule)
 
